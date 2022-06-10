@@ -8,6 +8,8 @@ type Line = String
 -- 1s, then an even split in the rightmost position.
 type Count = [Int]
 
+data Criterion = Most | Least
+
 -- variant of map that passes each element's index as a second argument to f
 mapInd :: (a -> Int -> b) -> [a] -> [b]
 mapInd f l = zipWith f l [0..]
@@ -45,9 +47,16 @@ countToLine count =
     let oneOrZeros = map (\countPos -> if countPos < 0 then 0 else 1) count in
     map intToDigit oneOrZeros
 
-notLine :: Line -> Line
-notLine [] = []
-notLine line = map (\bit -> if bit == '0' then '1' else '0') line
+flipBit :: Char -> Char
+flipBit bit =
+    case bit of
+        '0' -> '1'
+        '1' -> '0'
+        _ -> bit
+
+flipLine :: Line -> Line
+flipLine [] = []
+flipLine line = map flipBit line
 
 solve :: [Line] -> Int
 solve lines =
@@ -55,8 +64,29 @@ solve lines =
                            (initCount lines)
                            (linesToCounts lines) in
     let resultLine = countToLine resultCount in
-    let notResult = notLine resultLine in
-    (total resultLine) * (total notResult)
+    let flipResult = flipLine resultLine in
+    (total resultLine) * (total flipResult)
+
+cullIndexByCriterion :: Int -> Criterion -> [Line] -> [Line]
+cullIndexByCriterion index criterion lines =
+    let matchingBit =
+        case criterion of
+            Most -> ??
+            Least -> ??
+
+
+cull :: Int -> Criterion -> [Line] -> Line
+cull _ _ [] = []
+cull _ _ [line] = line
+cull index criterion lines =
+    let culledPass = cullIndexByCriterion index criterion lines in
+    cull (index + 1) criterion culledPass
+
+solve2 :: [Line] -> Int
+solve2 lines =
+    let oxygen = total $ cull 0 Most lines in
+    let co2 = total $ cull 0 Least lines in
+    oxygen * co2
 
 main :: IO()
 main =
